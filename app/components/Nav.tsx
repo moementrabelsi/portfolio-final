@@ -3,8 +3,10 @@
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
 import { motion, AnimatePresence } from "framer-motion";
+import { SiGithub } from "react-icons/si";
 
 const PROFILE_IMAGE = "/assets/1760485517071.jpg";
+const GITHUB_URL = "https://github.com/moementrabelsi/";
 
 const MAIN_LINKS = [
   { href: "#home", label: "Home", id: "home" },
@@ -199,6 +201,19 @@ export default function Nav() {
                   )}
                 </AnimatePresence>
               </li>
+              <li>
+                <motion.a
+                  href={GITHUB_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex min-h-[36px] min-w-[36px] items-center justify-center rounded-md text-zinc-400 transition-colors hover:bg-white/5 hover:text-zinc-100"
+                  aria-label="GitHub profile"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.98 }}
+                >
+                  <SiGithub className="h-5 w-5" />
+                </motion.a>
+              </li>
             </ul>
           </div>
 
@@ -254,6 +269,24 @@ export default function Nav() {
                       </a>
                     </motion.li>
                   ))}
+                  <motion.li
+                    initial={{ opacity: 0, x: -8 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ delay: (MAIN_LINKS.length + MORE_LINKS.length) * 0.03 }}
+                    className="border-t border-zinc-700/40 pt-2 mt-2"
+                  >
+                    <a
+                      href={GITHUB_URL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex min-h-[44px] items-center gap-3 rounded-lg px-3 py-3 text-sm font-medium text-zinc-300 transition-colors hover:bg-white/5 hover:text-zinc-100"
+                      onClick={() => setMobileOpen(false)}
+                    >
+                      <SiGithub className="h-5 w-5 shrink-0" />
+                      GitHub
+                    </a>
+                  </motion.li>
                 </ul>
               </motion.div>
             )}

@@ -1,9 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { SiGithub } from "react-icons/si";
 import { HiExternalLink, HiX } from "react-icons/hi";
+
+const GITHUB_USER = "moementrabelsi";
+const GITHUB_API = "https://api.github.com";
+const GITHUB_URL = `https://github.com/${GITHUB_USER}`;
+
+type GitHubProfile = {
+  avatar_url: string;
+  name: string | null;
+  login: string;
+  bio: string | null;
+  public_repos: number;
+  followers: number;
+  following: number;
+  html_url: string;
+};
 
 type Project = {
   title: string;
@@ -64,6 +79,18 @@ const PROJECTS: Project[] = [
 
 export default function Projects() {
   const [openProject, setOpenProject] = useState<Project | null>(null);
+  const [githubProfile, setGithubProfile] = useState<GitHubProfile | null>(null);
+  const [githubLoading, setGithubLoading] = useState(true);
+  const [githubError, setGithubError] = useState<string | null>(null);
+  const chartUrl = `https://github-readme-activity-graph.vercel.app/graph?username=${GITHUB_USER}&theme=react-dark&hide_border=true&area=true`;
+
+  useEffect(() => {
+    fetch(`${GITHUB_API}/users/${GITHUB_USER}`)
+      .then((res) => (res.ok ? res.json() : Promise.reject(new Error("Failed to load"))))
+      .then((data) => setGithubProfile(data))
+      .catch(() => setGithubError("Could not load GitHub data"))
+      .finally(() => setGithubLoading(false));
+  }, []);
 
   return (
     <section id="projects" className="relative px-4 py-16 sm:px-6 sm:py-20 lg:py-28">
@@ -76,10 +103,10 @@ export default function Projects() {
         className="mx-auto max-w-4xl pt-12 sm:pt-16"
       >
         <h2 className="font-heading text-xl font-semibold tracking-tight text-zinc-100 sm:text-2xl md:text-3xl">
-          Projects
+          Projects & GitHub
         </h2>
         <p className="mt-1 text-xs text-zinc-500 sm:mt-2 sm:text-sm">
-          Selected highlights — click a card to open details
+          Selected project highlights and GitHub profile
         </p>
         <div className="mt-6 flex flex-row gap-4 overflow-x-auto pb-4 scroll-smooth sm:mt-10 sm:gap-6 md:overflow-visible md:pb-0 [scrollbar-width:thin] [-webkit-overflow-scrolling:touch]">
           {PROJECTS.map((project, i) => (
@@ -133,6 +160,95 @@ export default function Projects() {
               </p>
             </motion.article>
           ))}
+        </div>
+
+        {/* GitHub — profile and contribution activity */}
+        <div className="mt-12 sm:mt-16">
+          <h3 className="font-heading text-sm font-semibold uppercase tracking-wider text-accent-cyan">
+            GitHub profile
+          </h3>
+          {githubLoading ? (
+            <div className="mt-4 flex items-center justify-center rounded-xl border border-zinc-700/40 bg-zinc-900/30 py-12">
+              <div className="h-6 w-6 animate-spin rounded-full border-2 border-accent-cyan/30 border-t-accent-cyan" aria-hidden />
+            </div>
+          ) : githubError ? (
+            <div className="mt-4 rounded-xl border border-zinc-700/40 bg-zinc-900/30 p-4">
+              <p className="text-sm text-zinc-500">{githubError}</p>
+              <a
+                href={GITHUB_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="mt-3 inline-flex items-center gap-2 text-sm font-medium text-accent-cyan hover:underline"
+              >
+                <SiGithub className="h-5 w-5" />
+                Open GitHub profile
+              </a>
+            </div>
+          ) : (
+            <>
+              {githubProfile && (
+                <motion.a
+                  href={githubProfile.html_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  className="glass-subtle glass-hover mt-4 flex flex-wrap items-center gap-4 rounded-xl border border-zinc-700/40 p-4 transition-all sm:gap-6 sm:p-6"
+                >
+                  <img
+                    src={githubProfile.avatar_url}
+                    alt=""
+                    width={80}
+                    height={80}
+                    className="h-20 w-20 rounded-full border-2 border-zinc-600/50 sm:h-24 sm:w-24"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-heading text-lg font-semibold text-zinc-100 sm:text-xl">
+                      {githubProfile.name || githubProfile.login}
+                    </p>
+                    <p className="text-sm text-zinc-500">@{githubProfile.login}</p>
+                    {githubProfile.bio && (
+                      <p className="mt-2 line-clamp-2 text-sm text-zinc-400">{githubProfile.bio}</p>
+                    )}
+                    <div className="mt-3 flex flex-wrap gap-4 text-xs text-zinc-500 sm:text-sm">
+                      <span>{githubProfile.public_repos} repos</span>
+                      <span>{githubProfile.followers} followers</span>
+                      <span>{githubProfile.following} following</span>
+                    </div>
+                  </div>
+                  <HiExternalLink className="h-5 w-5 shrink-0 text-zinc-500" />
+                </motion.a>
+              )}
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="mt-6 overflow-hidden rounded-xl border border-zinc-700/40 bg-zinc-900/30 p-4 sm:p-6"
+              >
+                <h4 className="font-heading text-xs font-semibold uppercase tracking-wider text-accent-cyan">
+                  Contribution activity
+                </h4>
+                <div className="mt-3 overflow-hidden rounded-lg bg-zinc-800/50">
+                  <iframe
+                    title="GitHub contribution activity graph"
+                    src={chartUrl}
+                    className="h-[240px] w-full border-0 sm:h-[280px]"
+                    loading="lazy"
+                    sandbox="allow-scripts"
+                  />
+                  <a
+                    href={`${GITHUB_URL}?tab=overview`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="mt-2 block text-center text-xs font-medium text-accent-cyan hover:underline"
+                  >
+                    View full profile on GitHub →
+                  </a>
+                </div>
+              </motion.div>
+            </>
+          )}
         </div>
       </motion.div>
 

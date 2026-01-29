@@ -18,6 +18,10 @@ export const metadata: Metadata = {
   title: "Abdelmoemen Trabelsi | DevOps Engineer | Cloud & Automation",
   description:
     "DevOps and Cloud Engineer certified in Kubernetes (CKA), specializing in automation, cloud infrastructure, and scalable systems. Based in Tunis, Tunisia.",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/favicon.ico",
+  },
 };
 
 export const viewport = {
