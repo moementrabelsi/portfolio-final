@@ -19,8 +19,8 @@ export const metadata: Metadata = {
   description:
     "DevOps and Cloud Engineer certified in Kubernetes (CKA), specializing in automation, cloud infrastructure, and scalable systems. Based in Tunis, Tunisia.",
   icons: {
-    icon: "/favicon.ico",
-    apple: "/favicon.ico",
+    icon: "/icon.svg",
+    apple: "/icon.svg",
   },
 };
 

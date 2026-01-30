@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
+import emailjs from "@emailjs/browser";
 import { SiLinkedin, SiGithub } from "react-icons/si";
 import { HiMail, HiLocationMarker } from "react-icons/hi";
 
@@ -11,21 +12,57 @@ const LINKEDIN = "https://www.linkedin.com/in/abdelmoemen-trabelsi-devops/";
 const GITHUB = "https://github.com/moementrabelsi/";
 const CV_URL = "/assets/cv.pdf";
 
-export default function Contact() {
-  const [formStatus, setFormStatus] = useState<"idle" | "success" | "error">("idle");
+const SERVICE_ID = process.env.NEXT_PUBLIC_EMAILJS_SERVICE_ID;
+const TEMPLATE_ID = process.env.NEXT_PUBLIC_EMAILJS_TEMPLATE_ID;
+const PUBLIC_KEY = process.env.NEXT_PUBLIC_EMAILJS_PUBLIC_KEY;
 
-  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+export default function Contact() {
+  const [formStatus, setFormStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState<string>("");
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const form = e.currentTarget;
-    const name = (form.elements.namedItem("name") as HTMLInputElement)?.value;
-    const email = (form.elements.namedItem("email") as HTMLInputElement)?.value;
-    const message = (form.elements.namedItem("message") as HTMLTextAreaElement)?.value;
-    const subject = encodeURIComponent(`Portfolio contact from ${name || "Someone"}`);
-    const body = encodeURIComponent(
-      `${message || ""}\n\n---\nFrom: ${name || "N/A"}\nEmail: ${email || "N/A"}`
-    );
-    window.open(`mailto:${EMAIL}?subject=${subject}&body=${body}`, "_blank");
-    setFormStatus("success");
+    const name = (form.elements.namedItem("name") as HTMLInputElement)?.value?.trim() ?? "";
+    const email = (form.elements.namedItem("email") as HTMLInputElement)?.value?.trim() ?? "";
+    const message = (form.elements.namedItem("message") as HTMLTextAreaElement)?.value?.trim() ?? "";
+
+    if (!name || !email || !message) {
+      setFormStatus("error");
+      setErrorMessage("Please fill in all fields.");
+      return;
+    }
+
+    if (SERVICE_ID && TEMPLATE_ID && PUBLIC_KEY) {
+      setFormStatus("loading");
+      setErrorMessage("");
+      try {
+        await emailjs.send(
+          SERVICE_ID,
+          TEMPLATE_ID,
+          {
+            from_name: name,
+            from_email: email,
+            reply_to: email,
+            message,
+          },
+          PUBLIC_KEY
+        );
+        setFormStatus("success");
+        form.reset();
+      } catch (err) {
+        setFormStatus("error");
+        setErrorMessage(err instanceof Error ? err.message : "Failed to send. Try again.");
+      }
+    } else {
+      // Fallback to mailto when env is not configured
+      const subject = encodeURIComponent(`Portfolio contact from ${name}`);
+      const body = encodeURIComponent(
+        `${message}\n\n---\nFrom: ${name}\nEmail: ${email}`
+      );
+      window.open(`mailto:${EMAIL}?subject=${subject}&body=${body}`, "_blank");
+      setFormStatus("success");
+    }
   }
 
   return (
@@ -140,11 +177,12 @@ export default function Contact() {
             />
             <motion.button
               type="submit"
-              className="btn-primary w-full min-h-[48px] whitespace-nowrap rounded-lg bg-accent-cyan/20 py-3 text-sm font-medium text-accent-cyan focus:outline-none focus:ring-2 focus:ring-accent-cyan focus:ring-offset-2 focus:ring-offset-[var(--background)]"
-              whileHover={{ scale: 1.01 }}
+              disabled={formStatus === "loading"}
+              className="btn-primary w-full min-h-[48px] whitespace-nowrap rounded-lg bg-accent-cyan/20 py-3 text-sm font-medium text-accent-cyan focus:outline-none focus:ring-2 focus:ring-accent-cyan focus:ring-offset-2 focus:ring-offset-[var(--background)] disabled:opacity-60 disabled:cursor-not-allowed"
+              whileHover={{ scale: formStatus === "loading" ? 1 : 1.01 }}
               whileTap={{ scale: 0.99 }}
             >
-              Send message
+              {formStatus === "loading" ? "Sending…" : "Send message"}
             </motion.button>
             {formStatus === "success" && (
               <motion.p
@@ -152,7 +190,16 @@ export default function Contact() {
                 animate={{ opacity: 1, y: 0 }}
                 className="mt-3 text-center text-sm text-accent-cyan"
               >
-                Your mail client will open to send the message.
+                Message sent successfully.
+              </motion.p>
+            )}
+            {formStatus === "error" && errorMessage && (
+              <motion.p
+                initial={{ opacity: 0, y: 4 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-3 text-center text-sm text-red-400"
+              >
+                {errorMessage}
               </motion.p>
             )}
           </motion.form>
