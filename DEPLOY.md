@@ -18,10 +18,14 @@ Vercel will detect Next.js automatically. You can leave defaults:
 
 - **Framework Preset:** Next.js
 - **Build Command:** `npm run build`
-- **Output Directory:** `.next`
+- **Output Directory:** Leave **blank** (or set to `.next`). Do **not** set to `dist` — Next.js outputs to `.next`.
 - **Install Command:** `npm install`
 
-No environment variables are required for this portfolio.
+No environment variables are required for this portfolio (unless you use the contact form with EmailJS; then add the vars from `.env.example`).
+
+### If the build failed with "dist was not found"
+
+In Vercel: **Project** → **Settings** → **General** → **Build & Development Settings** → **Output Directory**. Clear the field (leave it empty) and save. Then trigger a new deployment.
 
 ## 4. Deploy
 
